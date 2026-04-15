@@ -87,7 +87,7 @@ const fetchSales = async (id) => {
       return [];
     }
 
-    return body.data.result; // 👈 ICI la correction
+    return body.data.result;
   } catch (error) {
     console.error(error);
     return [];
