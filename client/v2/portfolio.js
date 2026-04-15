@@ -59,7 +59,7 @@ const setCurrentDeals = ({result, meta}) => {
 const fetchDeals = async (page = 1, size = 6) => {
   try {
     const response = await fetch(
-      `https://lego-130xc7u8p-limeen298s-projects.vercel.app`
+      `https://lego-server-3ua1gwde9-limeen298s-projects.vercel.app`
     );
     const body = await response.json();
 
@@ -78,7 +78,7 @@ const fetchDeals = async (page = 1, size = 6) => {
 const fetchSales = async (id) => {
   try {
     const response = await fetch(
-      `https://lego-130xc7u8p-limeen298s-projects.vercel.app`
+      `https://lego-server-3ua1gwde9-limeen298s-projects.vercel.app`
     );
     const body = await response.json();
 
