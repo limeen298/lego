@@ -1,9 +1,9 @@
 // current deals on the page
-let curretnDeals = [];
+let currentDeals = [];
 let currentPagination = {};
 
 // instatiate the selectors
-const selectShox = document.querySelector('#show-select');
+const selectShow = document.querySelector('#show-select');
 const selectPage = document.querySelector('#page-select');
 const selectLegoSetIds = document.querySelector('#lego-set-id-select');
 const sectionDeals = document.querySelector('#deals');
@@ -28,7 +28,7 @@ const setCurrentDeals = ({result, meta}) => {
 const fetchDeals = async (page = 1, size = 6) => {
     try {
         const response = await fetch(
-            'https://lego-api-blue.vercel.app/deals?page=${page}&size=${size}'
+        `https://lego-api-blue.vercel.app/deals?page=${page}&size=${size}`
         );
         const body = await response.json();
         
@@ -39,5 +39,36 @@ const fetchDeals = async (page = 1, size = 6) => {
 
         return body.data;
     }
-    catch (error) {}
+    catch (error) {
+        console.error(error);
+    }
 }
+
+const renderDeals = () => {
+  sectionDeals.innerHTML = "";
+
+  currentDeals.forEach((deal) => {
+    const div = document.createElement("div");
+
+    div.innerHTML = `
+      <a href="${deal.url}" target="_blank">
+        ${deal.title}
+      </a>
+      - ${deal.price}€
+    `;
+
+    sectionDeals.appendChild(div);
+  });
+
+  spanNbDeals.textContent = currentDeals.length;
+};
+
+const init = async () => {
+  const data = await fetchDeals(1, 6);
+
+  setCurrentDeals(data);
+
+  renderDeals();
+};
+
+init();
