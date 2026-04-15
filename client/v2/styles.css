@@ -1,0 +1,88 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background: #f5f5f5;
+}
+
+h1, h2 {
+  text-align: center;
+}
+
+section {
+  margin-bottom: 30px;
+}
+
+#lego {
+  text-align: center;
+}
+
+#deals {
+  text-align: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+}
+
+.deal {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  width: 250px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.2s;
+}
+
+.deals-title {
+  margin-bottom: 20px;
+}
+
+.deals-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.deal a {
+  text-decoration: none;
+  color: #0077cc;
+  font-weight: bold;
+}
+
+.deal a:hover {
+  text-decoration: underline;
+}
+
+.deal:hover {
+  transform: scale(1.03);
+}
+
+.fav-btn {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-size: 20px;
+  align-self: flex-end;
+}
+
+#options {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+#indicators div {
+  display: flex;
+  justify-content: space-between;
+  max-width: 300px;
+  margin: 5px auto;
+}
+
+#sales div {
+  text-align: center;
+  margin: 5px;
+}

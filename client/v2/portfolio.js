@@ -31,6 +31,14 @@ const selectPage = document.querySelector('#page-select');
 const selectLegoSetIds = document.querySelector('#lego-set-id-select');
 const sectionDeals= document.querySelector('#deals');
 const spanNbDeals = document.querySelector('#nbDeals');
+const selectFilters = document.querySelector('#filters-select');
+const selectSort = document.querySelector('#sort-select');
+const spanNbSales = document.querySelector('#nbSales');
+const spanP5 = document.querySelector('#p5');
+const spanP25 = document.querySelector('#p25');
+const spanP50 = document.querySelector('#p50');
+const spanLifetime = document.querySelector('#lifetime');
+const sectionSales = document.querySelector('#sales');
 
 /**
  * Set global value
@@ -67,6 +75,25 @@ const fetchDeals = async (page = 1, size = 6) => {
   }
 };
 
+const fetchSales = async (id) => {
+  try {
+    const response = await fetch(
+      `https://lego-api-blue.vercel.app/sales?id=${id}`
+    );
+    const body = await response.json();
+
+    if (body.success !== true) {
+      console.error(body);
+      return [];
+    }
+
+    return body.data.result; // 👈 ICI la correction
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+};
+
 /**
  * Render list of deals
  * @param  {Array} deals
@@ -77,19 +104,46 @@ const renderDeals = deals => {
   const template = deals
     .map(deal => {
       return `
-      <div class="deal" id=${deal.uuid}>
-        <span>${deal.id}</span>
-        <a href="${deal.link}">${deal.title}</a>
-        <span>${deal.price}</span>
-      </div>
-    `;
+        <div class="deal" id=${deal.uuid}>
+          <span>${deal.id}</span>
+          <a href="${deal.link}" target="_blank">${deal.title}</a>
+          <span>${deal.price}</span>
+          <button class="fav-btn" data-id="${deal.uuid}">
+            ${getFavorites().includes(deal.uuid) ? '❤️' : '🤍'}
+          </button>
+        </div>
+      `;
     })
     .join('');
 
   div.innerHTML = template;
   fragment.appendChild(div);
-  sectionDeals.innerHTML = '<h2>Deals</h2>';
-  sectionDeals.appendChild(fragment);
+ sectionDeals.innerHTML = `
+  <h2 class="deals-title">Deals</h2>
+  <div class="deals-container"></div>
+`;
+
+sectionDeals.querySelector('.deals-container').appendChild(fragment);
+
+  const buttons = document.querySelectorAll('.fav-btn');
+
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      const id = button.dataset.id;
+
+      let favorites = getFavorites();
+
+      if (favorites.includes(id)) {
+        favorites = favorites.filter(fav => fav !== id);
+      } else {
+        favorites.push(id);
+      }
+
+      saveFavorites(favorites);
+
+      render(currentDeals, currentPagination);
+    });
+  });
 };
 
 /**
@@ -138,22 +192,179 @@ const render = (deals, pagination) => {
 };
 
 /**
+ * Render Sales
+ */
+const renderSales = (sales) => {
+  const template = sales
+    .map(sale => {
+      return `
+        <div>
+          <a href="${sale.link}" target="_blank">Voir vente</a>
+        </div>
+      `;
+    })
+    .join('');
+
+  sectionSales.innerHTML = "<h2>Sales</h2>" + template;
+};
+
+/**
+ * Fonctions
+ */
+const getPercentile = (arr, percent) => {
+  if (arr.length === 0) return 0;
+  const index = Math.floor((percent / 100) * (arr.length - 1));
+  return arr[index];
+};
+
+const getFavorites = () => {
+  const favs = localStorage.getItem('favorites');
+  return favs ? JSON.parse(favs) : [];
+};
+
+const saveFavorites = (favs) => {
+  localStorage.setItem('favorites', JSON.stringify(favs));
+};
+
+/**
  * Declaration of all Listeners
  */
 
 /**
  * Select the number of deals to display
  */
-selectShow.addEventListener('change', async (event) => {
-  const deals = await fetchDeals(currentPagination.currentPage, parseInt(event.target.value));
-
-  setCurrentDeals(deals);
-  render(currentDeals, currentPagination);
-});
 
 document.addEventListener('DOMContentLoaded', async () => {
   const deals = await fetchDeals();
 
   setCurrentDeals(deals);
   render(currentDeals, currentPagination);
+
+  selectShow.addEventListener('change', async (event) => {
+    const deals = await fetchDeals(currentPagination.currentPage, parseInt(event.target.value));
+
+    setCurrentDeals(deals);
+    render(currentDeals, currentPagination);
+  });
+
+  selectPage.addEventListener('change', async (event) => {
+    const page = parseInt(event.target.value);
+
+    const deals = await fetchDeals(page, currentPagination.pageSize);
+
+    setCurrentDeals(deals);
+    render(currentDeals, currentPagination);
+  });
+
+  selectFilters.addEventListener('change', () => {
+    const value = selectFilters.value;
+
+    let filteredDeals = [...currentDeals];
+
+    if (value === "discount") {
+      filteredDeals = filteredDeals
+        .filter(deal => deal.discount > 10)
+        .sort((a, b) => b.discount - a.discount);
+    }
+
+    if (value === "comment") {
+      filteredDeals = filteredDeals
+        .sort((a, b) => b.comments - a.comments);
+    }
+
+    if (value === "hot") {
+      filteredDeals = filteredDeals
+        .sort((a, b) => b.temperature - a.temperature);
+    }
+
+    if (value === "favorites") {
+      const favorites = getFavorites();
+      filteredDeals = filteredDeals.filter(deal =>
+        favorites.includes(deal.uuid)
+      );
+    }
+
+    render(filteredDeals, currentPagination);
+  });
+
+  selectSort.addEventListener('change', () => {
+    const value = selectSort.value;
+
+    let sortedDeals = [...currentDeals];
+
+    if (value === "price-asc") {
+      sortedDeals.sort((a, b) => a.price - b.price);
+    }
+
+    if (value === "price-desc") {
+      sortedDeals.sort((a, b) => b.price - a.price);
+    }
+
+    if (value === "date-asc") {
+      sortedDeals.sort((a, b) => new Date(b.published) - new Date(a.published));
+    }
+
+    if (value === "date-desc") {
+      sortedDeals.sort((a, b) => new Date(a.published) - new Date(b.published));
+    }
+
+    render(sortedDeals, currentPagination);
+  });
+
+
+  selectLegoSetIds.addEventListener('change', async (event) => {
+    const id = event.target.value;
+
+    const sales = await fetchSales(id);
+
+    // Afficher les ventes
+      renderSales(sales);
+
+    // Nombre de ventes
+    spanNbSales.textContent = sales.length;
+
+    /**
+     * LIFETIME (durée entre 1ère et dernière vente)
+     */
+    const dates = sales
+      .map(sale => new Date(sale.published * 1000))
+      .filter(date => !isNaN(date))
+      .sort((a, b) => a - b);
+
+    if (dates.length === 0) {
+      spanLifetime.textContent = "0 days";
+    } else {
+      const firstDate = dates[0];
+      const lastDate = dates[dates.length - 1];
+
+      const diffTime = lastDate - firstDate;
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      spanLifetime.textContent = diffDays + " days";
+    }
+
+    /**
+     * PRIX (percentiles)
+     */
+    const prices = sales
+      .map(sale => parseFloat(sale.price.amount))
+      .filter(price => !isNaN(price))
+      .sort((a, b) => a - b);
+
+    if (prices.length === 0) {
+      spanP5.textContent = 0;
+      spanP25.textContent = 0;
+      spanP50.textContent = 0;
+      return;
+    }
+
+    const p5 = getPercentile(prices, 5);
+    const p25 = getPercentile(prices, 25);
+    const p50 = getPercentile(prices, 50);
+
+    spanP5.textContent = p5;
+    spanP25.textContent = p25;
+    spanP50.textContent = p50;
+  });
+
 });
