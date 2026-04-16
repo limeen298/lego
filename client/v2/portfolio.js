@@ -56,38 +56,39 @@ const setCurrentDeals = ({result, meta}) => {
  * @param  {Number}  [size=12] - size of the page
  * @return {Object}
  */
+
 const fetchDeals = async (page = 1, size = 6) => {
   try {
     const response = await fetch(
-      `https://lego-api-blue.vercel.app/deals?page=${page}&size=${size}`
+      `https://server-weld-psi-55.vercel.app/deals/search?limit=${size}&page=${page}`
     );
+
     const body = await response.json();
+    console.log("API RESPONSE:", body);
 
-    if (body.success !== true) {
-      console.error(body);
-      return {currentDeals, currentPagination};
-    }
+    return {
+      result: body.data.results,
+      meta: {
+        currentPage: page,
+        pageCount: body.data.pageCount,
+        pageSize: size,
+        count: body.data.total
+      }
+    };
 
-    return body.data;
   } catch (error) {
     console.error(error);
-    return {currentDeals, currentPagination};
+    return { result: currentDeals, meta: currentPagination };
   }
 };
 
 const fetchSales = async (id) => {
   try {
     const response = await fetch(
-      `https://lego-api-blue.vercel.app/sales?id=${id}`
+      `https://server-weld-psi-55.vercel.app/sales/search?legoSetId=${id}`
     );
     const body = await response.json();
-
-    if (body.success !== true) {
-      console.error(body);
-      return [];
-    }
-
-    return body.data.result;
+    return body.data.results || [];
   } catch (error) {
     console.error(error);
     return [];
